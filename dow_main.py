@@ -45,9 +45,7 @@ def get_file():
 
     df = pd.read_csv(file)
 
-    # d.rename(columns={"b'date": "date"}, inplace=True)
-    print(df.head())
-
+    df.rename(columns={"b\"date": "date"}, inplace=True)
     df['Date'] = pd.to_datetime(df["b'Date"], format="%Y-%m-%d")
     df = df.set_index("Date")
     # pd.set_option('display.float_format', '{:.2f}'.format)
@@ -74,14 +72,11 @@ def RSI(data):
 
     # up change is equal to the positive difference, otherwise equal to zero
     up_chg[diff > 0] = diff[diff > 0]
-    print(up_chg)
     # down change is equal to negative deifference, otherwise equal to zero
     down_chg[diff < 0] = diff[diff < 0]
 
     up_chg_avg = up_chg.ewm(com=time_window - 1, min_periods=time_window).mean()
     down_chg_avg = down_chg.ewm(com=time_window - 1, min_periods=time_window).mean()
-    print('up_chg_avg:', up_chg_avg)
-    print('down_chg_avg:', down_chg_avg)
     rs = abs(up_chg_avg / down_chg_avg)
     rsi = 100 - 100 / (1 + rs)
     return rsi
@@ -97,7 +92,7 @@ def plots(Ticker):
     values = np.array(['Volume', 'Adj Close', 'RSI'])
     for axis in values:
 
-        fig = plt.figure(figsize=(16, 10), num=95)
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 10))
         ax1 = fig.add_axes([0.1, 0.50, 0.85, 0.40])  # l,b,w,h
         ax2 = fig.add_axes([0.1, 0.10, 0.85, 0.35])
 
@@ -132,7 +127,6 @@ def plots(Ticker):
                     color='black', fontsize=15)
             else:
                 ax1.set_title('Price of DJI Vs ' + Ticker + ' Chart')
-
         plt.savefig(axis)
 
 
