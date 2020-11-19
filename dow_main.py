@@ -13,50 +13,15 @@ import logging
 def get_file():
     file = 'output.csv'
     if os.path.exists(file):
-        data_file = open(file, 'r', newline='')
+        df = pd.read_csv(file)
     else:
         url = 'https://query1.finance.yahoo.com/v7/finance/download/%5EDJI?period1=1573593278&period2=1605215678&interval=1d&events=history&includeAdjustedClose=true'
-        # logger.info(f"Downloading file from {url}")
-        try:
-            r = str((requests.get(url)).content).split("\\n")
-            data_file = open(file, 'w', newline='')
-        except:
-            # logger.critical(f"Could not download data from {url}")
-            quit()
-        for i in r:
-            if i[0] != "\"":
-                data_file.write(i + "\n")
+        df = pd.read_csv(url)
 
-        text = open(file, "r")
-
-        # join() method combines all contents of
-        # csvfile.csv and formed as a string
-        text = ''.join([i for i in text])
-
-        # search and replace the contents
-        text = text.replace("b'Date", "Date")
-
-        # output.csv is the output file opened in write mode
-        x = open("output.csv", "w")
-
-        # all the replaced text is written in the output.csv file
-        x.writelines(text)
-        x.close()
-
-    df = pd.read_csv(file)
-
-    df.rename(columns={"b\"date": "date"}, inplace=True)
-    df['Date'] = pd.to_datetime(df["b'Date"], format="%Y-%m-%d")
-    df = df.set_index("Date")
-    # pd.set_option('display.float_format', '{:.2f}'.format)
-    z = []
-    for x in df['Volume']:
-        if "\'" in x:
-            x = x.replace('\'', '')
-        x = int(x) / 1000000000
-        z.append(x)
-    df['Volume'] = z
-    df = df['2020-1-1':]
+    df['Date'] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
+    df['Volume'] = df['Volume'].astype("int")
+    df['Volume'] = df['Volume'] / 1000000000
+    df = df.loc[df["Date"] > "2020-01-01"]
     return df
 
 
