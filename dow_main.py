@@ -9,6 +9,8 @@ import matplotlib.ticker as tick
 from matplotlib.ticker import NullFormatter
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 def get_file():
     file = 'output.csv'
@@ -19,9 +21,11 @@ def get_file():
         df = pd.read_csv(url)
 
     df['Date'] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
+    df.rename(columns={"Date": "date"}, inplace=True)
     df['Volume'] = df['Volume'].astype("int")
     df['Volume'] = df['Volume'] / 1000000000
-    df = df.loc[df["Date"] > "2020-01-01"]
+    df = df.loc[df["date"] >= "2020-01-01"]
+    print(df.head(20))
     return df
 
 
@@ -95,18 +99,18 @@ def plots(Ticker):
         plt.savefig(axis)
 
 
-
-
 if __name__ == '__main__':
-    '''
-    logger = logging.getLogger()
+
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.DEBUG, format=log_format,
                         datefmt='%Y-%m-%d %H:%M:%S')
     logger.setLevel(logging.DEBUG)
-    '''
 
-    plots('MSFT')
+    parser = argparse.ArgumentParser('usage: covid_main.py [-h]')
+    parser.add_argument("-t", "--ticker", dest="ticker", default='MSFT')
+    args = parser.parse_args()
+
+    plots(args.ticker)
 
 
 
