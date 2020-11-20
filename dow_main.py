@@ -1,13 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
-import requests
 import datetime
 import os
 import numpy as np
-import matplotlib.ticker as tick
-from matplotlib.ticker import NullFormatter
 import logging
+import argparse
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -16,23 +15,27 @@ def get_file():
     file = 'output.csv'
     if os.path.exists(file):
         df = pd.read_csv(file)
+        logger.info(f"read {file} into dataframe")
     else:
-        url = 'https://query1.finance.yahoo.com/v7/finance/download/%5EDJI?period1=1573593278&period2=1605215678&interval=1d&events=history&includeAdjustedClose=true'
-        df = pd.read_csv(url)
-
+        try:
+            url = 'https://query1.finance.yahoo.com/v7/finance/download/%5EDJI?period1=1573593278&period2=1605215678&interval=1d&events=history&includeAdjustedClose=true'
+            df = pd.read_csv(url)
+        except:
+            logger.critical('Could not read URL')
+            sys.exit()
     df['Date'] = pd.to_datetime(df["Date"], format="%Y-%m-%d")
-    df.rename(columns={"Date": "date"}, inplace=True)
     df['Volume'] = df['Volume'].astype("int")
     df['Volume'] = df['Volume'] / 1000000000
-    df = df.loc[df["date"] >= "2020-01-01"]
-    print(df.head(20))
+    df = df.loc[df["Date"] >= "2020-01-01"]
+    df.rename(columns={"Date": "date"}, inplace=True)
     return df
 
 
 def RSI(data):
-
     # RSI
+
     time_window = 14
+
     diff = data.diff(1).dropna()  # diff in one field(one day)
 
     # this preservers dimensions off diff values
@@ -41,7 +44,7 @@ def RSI(data):
 
     # up change is equal to the positive difference, otherwise equal to zero
     up_chg[diff > 0] = diff[diff > 0]
-    # down change is equal to negative deifference, otherwise equal to zero
+    # down change is equal to negative difference, otherwise equal to zero
     down_chg[diff < 0] = diff[diff < 0]
 
     up_chg_avg = up_chg.ewm(com=time_window - 1, min_periods=time_window).mean()
@@ -56,7 +59,12 @@ def plots(Ticker):
     df = get_file()
 
     current_date = datetime.date.today()
-    df1 = yf.download(Ticker, "2020-01-01", current_date)
+    try:
+        df1 = yf.download(Ticker, "2020-01-01", current_date)
+        logger.info("Downloading data from yfinance.")
+    except:
+        logger.critical('Could not download data from yfinance.')
+        sys.exit()
 
     values = np.array(['Volume', 'Adj Close', 'RSI'])
     for axis in values:
@@ -91,26 +99,37 @@ def plots(Ticker):
             if axis == 'Volume':
                 ax1.set_title('Volume of DJI Vs ' + Ticker + ' Chart')
                 ax2.text(0.1, 0.9, 'Volume = 10^9',
-                    verticalalignment='center', horizontalalignment='center',
-                    transform=ax2.transAxes,
-                    color='black', fontsize=15)
+                         verticalalignment='center', horizontalalignment='center',
+                         transform=ax2.transAxes,
+                         color='black', fontsize=15)
             else:
                 ax1.set_title('Price of DJI Vs ' + Ticker + ' Chart')
+
         plt.savefig(axis)
 
 
 if __name__ == '__main__':
-
-    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_format,
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    # use of logging module
     logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    parser = argparse.ArgumentParser('usage: covid_main.py [-h]')
-    parser.add_argument("-t", "--ticker", dest="ticker", default='MSFT')
+    # Use of parsing module
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--refresh", default=False, action="store_true", dest="refresh")
+    parser.add_argument('-Ticker', dest='T', metavar='<Ticker>', help='Ticker of your choice', default='MSFT')
     args = parser.parse_args()
+    T = args.T
+    logger.info('CMD arguments: ' + str(parser.parse_args()))
 
-    plots(args.ticker)
+    # Plot charts
+    plots(T)
+
+
+
+
+
+
+
 
 
 
