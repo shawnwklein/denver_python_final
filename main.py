@@ -18,7 +18,36 @@ def main():
     dow_main.plots(args.ticker)
 
     merged = pd.merge(cd, dd, on=["date"])
-    print(merged.tail(20))
+    merged['new_deaths'] = merged['new_deaths'].replace(np.nan, 0)
+    merged['new_cases'] = merged['new_cases'].replace(np.nan, 0)
+    merged["norm_deaths"] = (merged["new_deaths"] - merged["new_deaths"].mean()) / (merged["new_deaths"].max() - merged["new_deaths"].min())
+    merged["norm_cases"] = (merged["new_cases"] - merged["new_cases"].mean()) / (merged["new_cases"].max() - merged["new_cases"].min())
+    merged["norm_volume"] = (merged["Volume"] - merged["Volume"].mean()) / (merged["Volume"].max() - merged["Volume"].min())
+
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.plot("date", "norm_deaths", data=merged)
+    ax.plot("date", "norm_volume", data=merged)
+    plt.savefig(f"Deaths to Volume")
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.plot("date", "norm_cases", data=merged)
+    ax.plot("date", "norm_volume", data=merged)
+    plt.savefig(f"Cases to Volume")
+
+    grouped = merged.groupby(["date"]).sum()
+
+
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    plt.scatter(grouped["Volume"], grouped["new_deaths"])
+    plt.savefig(f"Deaths to Volume Scatter")
+
+
+    quit()
+
+    covid_main.write_csv(cd, "covid_data.csv", "covid")
+    covid_main.write_csv(dd, "dow_data.csv", "dow")
 
 
 if __name__ == "__main__":

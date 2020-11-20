@@ -1,10 +1,11 @@
 import logging
 import argparse
-import requests
 import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import csv
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,20 @@ def create_pie_plot(data, month, year):
     plt.savefig(f"Top 10 new cases pie for {month}-{year}")
 
 
+def write_csv(data, file, covid_or_dow):
+    out = open(file, 'w', newline='')
+    csvwriter = csv.writer(out)
+    recs = []
+    logger.info(f"Writing {covid_or_dow} data to file...")
+    for i in data.index:
+        one_rec = [[]]
+        for c in data.columns:
+            one_rec[0].append(data.at[i,c])
+        recs.append(one_rec)
+
+    csvwriter.writerows(recs)
+
+
 def main():
     data = get_covid_data()
 
@@ -73,7 +88,7 @@ def main():
         create_pie_plot(data, args.month, args.year)
 
 
-def line_plot(title, df, x, y, country):
+def line_plot(title, df, x, y, country="United Status"):
     logger.info(f"Creating {title} line plot")
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.plot(x, y, data=df)
