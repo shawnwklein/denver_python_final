@@ -1,6 +1,5 @@
 import unittest
 import covid_main
-import dow_main
 import os
 
 
