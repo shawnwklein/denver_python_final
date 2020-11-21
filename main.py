@@ -35,16 +35,26 @@ def main():
     ax.plot("date", "norm_volume", data=merged)
     plt.savefig(f"Cases to Volume")
 
-    grouped = merged.groupby(["date"]).sum()
-
-
-
-    fig, ax = plt.subplots(figsize=(10, 8))
-    plt.scatter(grouped["Volume"], grouped["new_deaths"])
-    plt.savefig(f"Deaths to Volume Scatter")
-
-
-    quit()
+    merged["norm_price"] = (merged["Adj Close"] - merged["Adj Close"].mean()) / (
+                merged["Adj Close"].max() - merged["Adj Close"].min())
+    df = merged[merged['location'] == 'United States']
+    c = len(df)
+    df1 = df[0:55]
+    df2 = df[55: 110]
+    df3 = df[110: 165]
+    df4 = df[165:220]
+    A = [max(df1["norm_cases"]), max(df2["norm_cases"]), max(df3["norm_cases"]), max(df4["norm_cases"])]
+    B = [max(df1["norm_volume"]), max(df2["norm_volume"]), max(df3["norm_volume"]), max(df4["norm_volume"])]
+    width = 0.27
+    N = 4
+    ind = np.arange(N)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.bar(ind, A, width, color='r')
+    ax.bar(ind + width, B, width, color='g')
+    ax.set_xticks(ind + width)
+    ax.set_xticklabels(('2020 Quarter 1', '2020 Quarter 2', '2020 Quarter 3', '2020 Quarter 4'))
+    plt.savefig('Bar chart')
 
     covid_main.write_csv(cd, "covid_data.csv", "covid")
     covid_main.write_csv(dd, "dow_data.csv", "dow")

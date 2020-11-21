@@ -34,7 +34,7 @@ def get_covid_data(is_refresh=False):
 
 def list_counties(data):
     locations = np.unique(data["location"])
-    logger.info(locations)
+    return locations
 
 
 def create_cases_death_plots(data, country, month, year):
@@ -45,6 +45,15 @@ def create_cases_death_plots(data, country, month, year):
     plots = ["new_cases", "new_deaths"]
     for i in plots:
         line_plot(i, country_data, "date", i, country)
+
+
+def line_plot(title, df, x, y, country="United States"):
+    logger.info(f"Creating {title} line plot")
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.plot(x, y, data=df)
+    [ax.spines[side].set_visible(False) for side in ["left", "right", "top", "bottom"]]
+    plt.xticks(rotation=60)
+    plt.savefig(f"{country} {title}")
 
 
 def create_pie_plot(data, month, year):
@@ -74,27 +83,20 @@ def write_csv(data, file, covid_or_dow):
         recs.append(one_rec)
 
     csvwriter.writerows(recs)
+    out.close()
 
 
 def main():
     data = get_covid_data()
 
     if args.country:
-        list_counties(data)
+        c = list_counties(data)
+        logger.info(c)
         quit()
 
     if args.for_country:
         create_cases_death_plots(data, args.for_country, args.month, args.year)
         create_pie_plot(data, args.month, args.year)
-
-
-def line_plot(title, df, x, y, country="United Status"):
-    logger.info(f"Creating {title} line plot")
-    fig, ax = plt.subplots(figsize=(10, 8))
-    ax.plot(x, y, data=df)
-    [ax.spines[side].set_visible(False) for side in ["left", "right", "top", "bottom"]]
-    plt.xticks(rotation=60)
-    plt.savefig(f"{country} {title}")
 
 
 if __name__ == "__main__":
