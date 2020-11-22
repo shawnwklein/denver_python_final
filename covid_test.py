@@ -21,6 +21,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_line_plot(self):
         cd = covid_main.get_covid_data()
+        cd = cd.loc[cd["location"] == "United States"]
         covid_main.line_plot("TEST", cd, "date", "new_cases", country="United States")
         self.assertEqual(os.path.exists("United States TEST.png"), True)
 

@@ -87,7 +87,12 @@ def write_csv(data, file, covid_or_dow):
 
 
 def main():
-    data = get_covid_data()
+
+    if not args.refresh and not args.country and not args.for_country:
+        parser.print_help()
+        quit()
+
+    data = get_covid_data(args.refresh)
 
     if args.country:
         c = list_counties(data)
@@ -97,6 +102,7 @@ def main():
     if args.for_country:
         create_cases_death_plots(data, args.for_country, args.month, args.year)
         create_pie_plot(data, args.month, args.year)
+        write_csv(data, "covid_data.csv", "covid")
 
 
 if __name__ == "__main__":
